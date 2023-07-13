@@ -44,10 +44,8 @@ const { v4: uuidv4 } = require('uuid');
       console.log("url")
       console.log(url)
       const response = await axios.get(url, { responseType: 'arraybuffer' });
-      let destination = "./temp/" + uuidv4() + ".pdf";
-      // Save the PDF file
-      fs.writeFileSync(destination, response.data);
-      return destination;
+      const fileContents = response.data;
+      return fileContents;
     } catch (error) {
       console.error('An error occurred while downloading the PDF file:');
     }
@@ -58,7 +56,8 @@ const { v4: uuidv4 } = require('uuid');
     try {
       let {fileUrl} = req.body;
       let downloadedPDFFile = await downloadPdf(fileUrl);
-      const pdfBytes = fs.readFileSync(downloadedPDFFile);
+      // const pdfBytes = fs.readFileSync(downloadedPDFFile);
+      const pdfBytes = downloadedPDFFile;
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
