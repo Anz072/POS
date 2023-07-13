@@ -41,8 +41,6 @@ const { v4: uuidv4 } = require('uuid');
 
   const downloadPdf = async (url) => {
     try {
-      console.log("url")
-      console.log(url)
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       const fileContents = response.data;
       return fileContents;
@@ -52,10 +50,9 @@ const { v4: uuidv4 } = require('uuid');
   };
   
 
+
   const getFieldInfoDynamic = async (req,res) => {
     try {
-      console.log(req.body)
-      console.log(req)
       let {fileUrl} = req.body;
       let downloadedPDFFile = await downloadPdf(fileUrl);
       // const pdfBytes = fs.readFileSync(downloadedPDFFile);
@@ -63,10 +60,14 @@ const { v4: uuidv4 } = require('uuid');
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
-  
+
+      // await identifyCheckboxGroups(pdfBytes);
+
+      
       const fieldTypes = fields.map(field => {
         const fieldName = field.getName();
         let fieldType;
+        let radioChoices = [];
         switch (true) {
           case field instanceof PDFTextField:
             fieldType = 'Text';
@@ -79,11 +80,12 @@ const { v4: uuidv4 } = require('uuid');
             break;
           case field instanceof PDFRadioGroup:
             fieldType = 'RadioGroup';
+            radioChoices = field.getOptions();
             break;
           default:
             fieldType = 'Unknown';
         }
-        return { fieldName, fieldType };
+        return { fieldName, fieldType , radioChoices};
       });
       res.send(fieldTypes);
     } catch (error) {
