@@ -49,7 +49,7 @@ const { v4: uuidv4 } = require('uuid');
       fs.writeFileSync(destination, response.data);
       return destination;
     } catch (error) {
-      console.error('An error occurred while downloading the PDF file:', error);
+      console.error('An error occurred while downloading the PDF file:');
     }
   };
   
