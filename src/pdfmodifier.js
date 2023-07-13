@@ -54,6 +54,7 @@ const { v4: uuidv4 } = require('uuid');
 
   const getFieldInfoDynamic = async (req,res) => {
     try {
+      console.log(req.body)
       let {fileUrl} = req.body;
       let downloadedPDFFile = await downloadPdf(fileUrl);
       // const pdfBytes = fs.readFileSync(downloadedPDFFile);
