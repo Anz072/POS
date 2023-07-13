@@ -41,6 +41,8 @@ const { v4: uuidv4 } = require('uuid');
 
   const downloadPdf = async (url) => {
     try {
+      console.log("url")
+      console.log(url)
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       let destination = "./temp/" + uuidv4() + ".pdf";
       // Save the PDF file
@@ -55,7 +57,6 @@ const { v4: uuidv4 } = require('uuid');
   const getFieldInfoDynamic = async (req,res) => {
     try {
       let {fileUrl} = req.body;
-
       let downloadedPDFFile = await downloadPdf(fileUrl);
       const pdfBytes = fs.readFileSync(downloadedPDFFile);
       const pdfDoc = await PDFDocument.load(pdfBytes);
