@@ -99,11 +99,13 @@ const { v4: uuidv4 } = require('uuid');
     let pdfBytes = await downloadPdf(fileUrl);
     // const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
     const pdfDoc = await PDFDocument.load(pdfBytes);
+    let cls = JSON.parse(Cluster);
+    console.log("REEEEEEEEEEEEEEEEEEEE")
     const form = pdfDoc.getForm();
     const fields = form.getFields();
-    fields.forEach(field => {
+    fields.forEach(field => { 
         let name = field.getName();
-        let matchingObject = Cluster.find(obj => obj.fieldName === name);
+        let matchingObject = cls.find(obj => obj.fieldName === name);
         if(matchingObject != undefined){
           if(matchingObject.fieldType == "Text"){
             let textField = form.getTextField(matchingObject.fieldName);
@@ -131,7 +133,7 @@ const { v4: uuidv4 } = require('uuid');
     const modifiedPdfBytes = await pdfDoc.save();
     // Save the modified PDF to a file
     // fs.writeFileSync('./modifiedPdf1.pdf', modifiedPdfBytes);
-    let base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(modifiedPdfBytes)));
+    let base64String = Buffer.from(modifiedPdfBytes).toString('base64');
     uploadPdfToBubble(base64String);
 
     try {
