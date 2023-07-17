@@ -7,7 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 // Function used to retrieve field names & types of PDFs in PDF Form. Returns a JSON file.
   const getFieldInfo = async (req,res) => {
     try {
-      const pdfBytes = fs.readFileSync('./PDF_Form/FINAL.pdf');
+      const pdfBytes = fs.readFileSync('./PDF_Form/xfapdf34.pdf');
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
@@ -54,9 +54,7 @@ const { v4: uuidv4 } = require('uuid');
   const getFieldInfoDynamic = async (req,res) => {
     try {
       let {fileUrl} = req.body;
-      let downloadedPDFFile = await downloadPdf(fileUrl);
-      // const pdfBytes = fs.readFileSync(downloadedPDFFile);
-      const pdfBytes = downloadedPDFFile;
+      let pdfBytes = await downloadPdf(fileUrl);
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
@@ -74,6 +72,7 @@ const { v4: uuidv4 } = require('uuid');
             break;
           case field instanceof PDFCheckBox:
             fieldType = 'Checkbox';
+
             break;
           case field instanceof PDFSignature:
             fieldType = 'Signature';
@@ -96,7 +95,9 @@ const { v4: uuidv4 } = require('uuid');
   // Function used to post answers to form fields & create a new pdf copy with the answers
   const createNewPdfInstance = async (req,res) => {
     let {Cluster} = req.body;
-    const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
+    let {fileUrl} = req.body;
+    let pdfBytes = await downloadPdf(fileUrl);
+    // const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const form = pdfDoc.getForm();
     const fields = form.getFields();
@@ -129,8 +130,9 @@ const { v4: uuidv4 } = require('uuid');
     form.flatten();
     const modifiedPdfBytes = await pdfDoc.save();
     // Save the modified PDF to a file
-    fs.writeFileSync('./modifiedPdf1.pdf', modifiedPdfBytes);
-    uploadPdfToBubble("./modifiedPdf1.pdf");
+    // fs.writeFileSync('./modifiedPdf1.pdf', modifiedPdfBytes);
+    let base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(modifiedPdfBytes)));
+    uploadPdfToBubble(base64String);
 
     try {
       res.send("1st pdf created with answers");
@@ -139,34 +141,34 @@ const { v4: uuidv4 } = require('uuid');
     }
   };
 
-  const createNewUpdatedPdfInstance = async (req,res) => {
-    let {Cluster} = req.body;
-    const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const form = pdfDoc.getForm();
-    const fields = form.getFields();
+  // const createNewUpdatedPdfInstance = async (req,res) => {
+  //   let {Cluster} = req.body;
+  //   const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
+  //   const pdfDoc = await PDFDocument.load(pdfBytes);
+  //   const form = pdfDoc.getForm();
+  //   const fields = form.getFields();
 
-    fields.forEach(field => {
-        let name = field.getName();
-        let matchingObject = Cluster.find(obj => obj.fieldName === name);
-        if(matchingObject != undefined){
-            let textField = form.getTextField(matchingObject.fieldName);
-            textField.setText(matchingObject.Answer);
-        }
-    });
+  //   fields.forEach(field => {
+  //       let name = field.getName();
+  //       let matchingObject = Cluster.find(obj => obj.fieldName === name);
+  //       if(matchingObject != undefined){
+  //           let textField = form.getTextField(matchingObject.fieldName);
+  //           textField.setText(matchingObject.Answer);
+  //       }
+  //   });
 
-    form.flatten();
+  //   form.flatten();
 
-    const modifiedPdfBytes = await pdfDoc.save();
+  //   const modifiedPdfBytes = await pdfDoc.save();
 
-    // Save the modified PDF to a file
-    fs.writeFileSync('./modifiedPdf2.pdf', modifiedPdfBytes);
-    try {
-      res.send("2nd pdf created with answers");
-    } catch (error) {
-      res.send(error);
-    }
-  };
+  //   // Save the modified PDF to a file
+  //   fs.writeFileSync('./modifiedPdf2.pdf', modifiedPdfBytes);
+  //   try {
+  //     res.send("2nd pdf created with answers");
+  //   } catch (error) {
+  //     res.send(error);
+  //   }
+  // };
 
 const flattenPDF = async (req,res)=>{
 const xfaPdfBytes = fs.readFileSync('./PDF_Form/xfapdf.pdf');
@@ -179,16 +181,14 @@ const flattenedPdfBytes = await pdfDoc.save();
 fs.writeFileSync('./outxxput.pdf', flattenedPdfBytes);
 }
 
-async function uploadPdfToBubble(pdfFilePath) {
-  const pdfFile = fs.readFileSync("./modifiedPdf1.pdf");
+async function uploadPdfToBubble(base64String) {
   let name = uuidv4() + ".pdf";
-  const pdfFileBase64 = pdfFile.toString('base64');
   let webhookUrl = "https://poc-46861.bubbleapps.io/version-test/api/1.1/wf/test";
   try {
       const response = await axios.post(webhookUrl, { file: 
         {
           filename: name,
-          contents: pdfFileBase64
+          contents: base64String
         }
          });
       console.log(response.data);
@@ -203,7 +203,7 @@ async function uploadPdfToBubble(pdfFilePath) {
   module.exports = {
     getFieldInfo,
     createNewPdfInstance,
-    createNewUpdatedPdfInstance,
+    // createNewUpdatedPdfInstance,
     flattenPDF,
     getFieldInfoDynamic
   }; 
