@@ -99,13 +99,13 @@ const { v4: uuidv4 } = require('uuid');
     let pdfBytes = await downloadPdf(fileUrl);
     // const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
     const pdfDoc = await PDFDocument.load(pdfBytes);
-    let cls = JSON.parse(Cluster);
-    console.log("REEEEEEEEEEEEEEEEEEEE")
+    // let cls = JSON.parse(Cluster);
+    // console.log("REEEEEEEEEEEEEEEEEEEE")
     const form = pdfDoc.getForm();
     const fields = form.getFields();
     fields.forEach(field => { 
         let name = field.getName();
-        let matchingObject = cls.find(obj => obj.fieldName === name);
+        let matchingObject = Cluster.find(obj => obj.fieldName === name);
         if(matchingObject != undefined){
           if(matchingObject.fieldType == "Text"){
             let textField = form.getTextField(matchingObject.fieldName);
