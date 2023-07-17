@@ -13,6 +13,7 @@ app.post('/post_answers', pdfModifier.createNewPdfInstance);
 // app.post('/post_answers_to_new', pdfModifier.createNewUpdatedPdfInstance);
 app.post('/flattenxfa', pdfModifier.flattenPDF);
 app.post('/downloadandfield', pdfModifier.getFieldInfoDynamic);
+app.post('/downloadandfieldNew', pdfModifier.getFieldInfoDynamicNew);
 // app.post('/adobeConvert', adobe.convertPDFToDOCXAndThenToPDF);
 
 app.get('/test_endpoint', async (req, res) => {

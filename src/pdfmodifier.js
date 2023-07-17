@@ -139,34 +139,57 @@ const { v4: uuidv4 } = require('uuid');
     }
   };
 
-  // const createNewUpdatedPdfInstance = async (req,res) => {
-  //   let {Cluster} = req.body;
-  //   const pdfBytes = fs.readFileSync('./PDF_Form/FINAL2.pdf');
-  //   const pdfDoc = await PDFDocument.load(pdfBytes);
-  //   const form = pdfDoc.getForm();
-  //   const fields = form.getFields();
 
-  //   fields.forEach(field => {
-  //       let name = field.getName();
-  //       let matchingObject = Cluster.find(obj => obj.fieldName === name);
-  //       if(matchingObject != undefined){
-  //           let textField = form.getTextField(matchingObject.fieldName);
-  //           textField.setText(matchingObject.Answer);
-  //       }
-  //   });
+  const getFieldInfoDynamicNew = async (req,res) => {
+    try {
+      let {fileUrl} = req.body;
+      let {Cluster} = req.body;
+      let pdfBytes = await downloadPdf(fileUrl);
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const form = pdfDoc.getForm();
+      const fields = form.getFields();
 
-  //   form.flatten();
+      // await identifyCheckboxGroups(pdfBytes);
 
-  //   const modifiedPdfBytes = await pdfDoc.save();
+      
+      const fieldTypes = fields.map(field => {
+        const fieldName = field.getName();
+        let prefill = "";
+        let matchingObject = Cluster.find(obj => obj.fieldName === fieldName);
+        if(matchingObject != undefined){
+          prefill = matchingObject.Answer
+        }
+        // console.log(matchingObject)
+        let fieldType;
+        let radioChoices = [];
+        switch (true) {
+          case field instanceof PDFTextField:
+            fieldType = 'Text';
+            break;
+          case field instanceof PDFCheckBox:
+            fieldType = 'Checkbox';
 
-  //   // Save the modified PDF to a file
-  //   fs.writeFileSync('./modifiedPdf2.pdf', modifiedPdfBytes);
-  //   try {
-  //     res.send("2nd pdf created with answers");
-  //   } catch (error) {
-  //     res.send(error);
-  //   }
-  // };
+            break;
+          case field instanceof PDFSignature:
+            fieldType = 'Signature';
+            break;
+          case field instanceof PDFRadioGroup:
+            fieldType = 'RadioGroup';
+            radioChoices = field.getOptions();
+            if(matchingObject != undefined){
+              prefill = matchingObject.RadioChoice
+            }
+            break;
+          default:
+            fieldType = 'Unknown';
+        }
+        return { fieldName, fieldType , radioChoices, prefill};
+      });
+      res.send(fieldTypes);
+    } catch (error) {
+      res.send(error);
+    }
+  };
 
 const flattenPDF = async (req,res)=>{
 const xfaPdfBytes = fs.readFileSync('./PDF_Form/xfapdf.pdf');
@@ -201,7 +224,7 @@ async function uploadPdfToBubble(base64String) {
   module.exports = {
     getFieldInfo,
     createNewPdfInstance,
-    // createNewUpdatedPdfInstance,
+    getFieldInfoDynamicNew,
     flattenPDF,
     getFieldInfoDynamic
   }; 
