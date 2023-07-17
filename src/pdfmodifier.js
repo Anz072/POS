@@ -121,11 +121,7 @@ const { v4: uuidv4 } = require('uuid');
             }
         }else if(matchingObject.fieldType == "RadioGroup"){
             let radioGroup = form.getRadioGroup(matchingObject.fieldName)
-            if(matchingObject.Answer == "true"){
-                radioGroup.select("Yes");
-            }else{
-                radioGroup.select("No");
-            }
+            radioGroup.select(matchingObject.RadioChoice);
         }
         }
     });
